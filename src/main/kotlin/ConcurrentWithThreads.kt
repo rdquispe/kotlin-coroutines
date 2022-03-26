@@ -10,5 +10,7 @@ fun main() {
         log("After Thread.sleep.")
     }
 
+    Thread.sleep(2000) // Adding Fix
+
     log("End")
 }
