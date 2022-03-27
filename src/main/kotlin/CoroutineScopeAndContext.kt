@@ -1,5 +1,3 @@
-package sequential
-
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking

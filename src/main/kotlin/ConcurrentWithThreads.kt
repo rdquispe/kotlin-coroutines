@@ -1,4 +1,3 @@
-package sequential
 
 import kotlin.concurrent.thread
 
