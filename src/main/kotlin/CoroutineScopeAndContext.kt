@@ -1,6 +1,7 @@
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.runBlocking
+import kotlin.coroutines.ContinuationInterceptor
 
 fun main() {
     val aContext = CoroutineName("A")
@@ -22,7 +23,7 @@ fun main() {
         log(
             "runBlocking Context | " +
                 "Job: ${runBlockingContextAndName1[Job]} , " +
-                "RunBlockingContextAndName1: $runBlockingContextAndName1 , " +
+                "ContinuationInterceptor: ${this.coroutineContext[ContinuationInterceptor]} , " +
                 "CoroutineName: ${runBlockingContextAndName1[CoroutineName]}"
         )
 
@@ -31,7 +32,7 @@ fun main() {
         log(
             "runBlocking Context | " +
                 "Job: ${runBlockingContextAndName2[Job]} , " +
-                "RunBlockingContextAndName2: $runBlockingContextAndName2 , " +
+                "ContinuationInterceptor: ${this.coroutineContext[ContinuationInterceptor]} , " +
                 "CoroutineName: ${runBlockingContextAndName2[CoroutineName]}"
         )
     }
