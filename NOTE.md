@@ -9,3 +9,6 @@ https://medium.com/@glenn.sandoval.v/coroutines-con-kotlin-coroutinename-a8f9315
 [Channels: I — Comunicación entre coroutines](https://medium.com/@glenn.sandoval.v/coroutines-con-kotlin-channels-i-comunicaci%C3%B3n-entre-coroutines-f2addee96506)
 
 [Channels: II — El constructor ‘produce’](https://medium.com/kotlin-en-android/coroutines-con-kotlin-channels-ii-el-constructor-produce-fc21ae57670b)
+
+[Estados mutables compartidos: I — Técnicas](https://medium.com/@glenn.sandoval.v/coroutines-con-kotlin-estados-mutables-compartidos-i-t%C3%A9cnicas-593d73b36ba6)
+
