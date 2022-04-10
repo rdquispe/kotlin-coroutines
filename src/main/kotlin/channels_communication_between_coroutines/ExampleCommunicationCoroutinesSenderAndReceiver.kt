@@ -1,4 +1,4 @@
-package communication_between_coroutines
+package channels_communication_between_coroutines
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel

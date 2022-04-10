@@ -1,19 +1,20 @@
-package communication_between_coroutines
+package channels_communication_between_coroutines
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import log
+import java.util.concurrent.ConcurrentLinkedQueue
 
 fun main() {
     log("Start")
 
     val mutex = Mutex()
 
-    val channel = Channel<Int>()
+    val queue = ConcurrentLinkedQueue<Int>()
+    var closed = false
 
     var produced = 0
     var consumed = 0
@@ -25,25 +26,31 @@ fun main() {
             val producers = List(100_000) {
                 launch {
                     val number = (1..100).random()
-                    channel.send(number)
-                    mutex.withLock {
-                        produced ++
+                    if (queue.offer(number)) {
+                        mutex.withLock {
+                            produced ++
+                        }
                     }
                 }
             }
 
             producers.forEach { it.join() }
-            channel.close()
+            closed = true
             log("Producers finished!")
         }
 
         launch(Dispatchers.Default) {
             val consumers = List(amounts.size) {
                 launch {
-                    for (i in channel) {
-                        mutex.withLock {
-                            consumed ++
-                            amounts[it] ++
+                    while (! closed || ! queue.isEmpty()) {
+                        if (! queue.isEmpty()) {
+                            val number = queue.poll()
+                            if (number != null) {
+                                mutex.withLock {
+                                    consumed ++
+                                    amounts[it] ++
+                                }
+                            }
                         }
                     }
                 }
@@ -54,6 +61,7 @@ fun main() {
         }
     }
 
+    log("Queue size: ${queue.size}")
     log("Produced: $produced")
     log("Consumed: $consumed")
 
