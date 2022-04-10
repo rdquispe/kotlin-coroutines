@@ -1,22 +1,24 @@
-package communication_between_coroutines
+package channels_contructor_produce
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import log
 import kotlin.coroutines.CoroutineContext
 
+
 data class Planet(val name: String, val volume: Long, val radius: Double, val moons: Int, val rings: Boolean)
 
-class PlanetsProducer {
-
-    private val channel = Channel<Planet>()
+class PlanetsProducer : CoroutineScope {
+    private val job = Job()
+    override val coroutineContext: CoroutineContext
+        get() = job + Dispatchers.Default
 
     private val planets = listOf(
         Planet("Mercury", 60_827_208_742, 2_439.7, 0, false),
@@ -29,11 +31,12 @@ class PlanetsProducer {
         Planet("Neptune", 62_525_703_987_421, 24_622.0, 14, true)
     )
 
-    fun getChannel(): ReceiveChannel<Planet> = this.channel
+    fun getChannel(): ReceiveChannel<Planet> = produce {
+        planets.forEach { send(it) }
+    }
 
-    suspend fun processPlanetsStream() = withContext(Dispatchers.Default) {
-        planets.forEach { channel.send(it) }
-        channel.close()
+    fun release() {
+        this.job.cancel()
     }
 
 }
@@ -51,25 +54,15 @@ class PlanetsConsumer : CoroutineScope {
             }
     }
 
-    private fun ReceiveChannel<Planet>.filterByMoons(moons: Int): ReceiveChannel<Planet> {
-        val filteredElementsChannel = Channel<Planet>()
-        launch {
-            consumeEach { planet ->
-                if (planet.moons >= moons)
-                    filteredElementsChannel.send(planet)
-            }
-            filteredElementsChannel.close()
+    private fun ReceiveChannel<Planet>.filterByMoons(moons: Int): ReceiveChannel<Planet> = produce {
+        consumeEach { planet ->
+            if (planet.moons >= moons)
+                send(planet)
         }
-        return filteredElementsChannel
     }
 
-    private fun ReceiveChannel<Planet>.mapToName(): ReceiveChannel<String> {
-        val mappedElementsChannel = Channel<String>()
-        launch {
-            consumeEach { planet -> mappedElementsChannel.send(planet.name) }
-            mappedElementsChannel.close()
-        }
-        return mappedElementsChannel
+    private fun ReceiveChannel<Planet>.mapToName(): ReceiveChannel<String> = produce {
+        consumeEach { planet -> send(planet.name) }
     }
 
     fun release() {
@@ -86,12 +79,9 @@ fun main() {
 
     runBlocking {
         launch {
-            planetsProducer.processPlanetsStream()
-        }
-
-        launch {
             planetsConsumer.processPlanetsStream(planetsProducer.getChannel())
             planetsConsumer.release()
+            planetsProducer.release()
         }
     }
 
